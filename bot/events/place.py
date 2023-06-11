@@ -1,76 +1,77 @@
-import asyncio
 import numpy as np
 import matplotlib.pyplot as plt
-from mlib.colors import buffered_image
 from mlib.graphing import create_image
 import json
 import os
 
 from MFramework.commands.cooldowns import CacheCooldown, cooldown
-from MFramework import Attachment,Context, Embed, Groups, register
+from MFramework import Attachment, Context, Groups, register
 
-#Canvas Size
+# Canvas Size
 CANVAS_WIDTH = 300
 CANVAS_HEIGHT = 300
 BORDER_SIZE = 5
-#Default zoom when using the show command, will show a 50x50 pixel image
+# Default zoom when using the show command, will show a 50x50 pixel image
 DEFAULT_ZOOM_SIZE = 50
 
 
-#color codes, list is expandable
+# color codes, list is expandable
 COLOR_CODES = {
-    'red': (255, 0, 0),
-    'green': (0, 255, 0),
-    'blue': (0, 0, 255),
-    'yellow': (255, 255, 0),
-    'magenta': (255, 0, 255),
-    'cyan': (0, 255, 255),
-    'black': (0, 0, 0),
-    'white': (255, 255, 255),
-    'gray': (128, 128, 128),
-    'maroon': (128, 0, 0),
-    'olive': (128, 128, 0),
-    'navy': (0, 0, 128),
-    'purple': (128, 0, 128),
-    'teal': (0, 128, 128),
-    'lime': (0, 128, 0),
-    'aqua': (0, 255, 255),
-    'silver': (192, 192, 192),
-    'fuchsia': (255, 0, 255),
-    'orange': (255, 165, 0),
-    'pink': (255, 192, 203),
-    'gold': (255, 215, 0),
-    'brown': (165, 42, 42),
-    'indigo': (75, 0, 130),
-    'violet': (238, 130, 238),
-    'turquoise': (64, 224, 208),
-    'coral': (255, 127, 80),
-    'khaki': (240, 230, 140),
-    'plum': (221, 160, 221),
-    'salmon': (250, 128, 114),
-    'orchid': (218, 112, 214),
-    'tan': (210, 180, 140),
+    "red": (255, 0, 0),
+    "green": (0, 255, 0),
+    "blue": (0, 0, 255),
+    "yellow": (255, 255, 0),
+    "magenta": (255, 0, 255),
+    "cyan": (0, 255, 255),
+    "black": (0, 0, 0),
+    "white": (255, 255, 255),
+    "gray": (128, 128, 128),
+    "maroon": (128, 0, 0),
+    "olive": (128, 128, 0),
+    "navy": (0, 0, 128),
+    "purple": (128, 0, 128),
+    "teal": (0, 128, 128),
+    "lime": (0, 128, 0),
+    "aqua": (0, 255, 255),
+    "silver": (192, 192, 192),
+    "fuchsia": (255, 0, 255),
+    "orange": (255, 165, 0),
+    "pink": (255, 192, 203),
+    "gold": (255, 215, 0),
+    "brown": (165, 42, 42),
+    "indigo": (75, 0, 130),
+    "violet": (238, 130, 238),
+    "turquoise": (64, 224, 208),
+    "coral": (255, 127, 80),
+    "khaki": (240, 230, 140),
+    "plum": (221, 160, 221),
+    "salmon": (250, 128, 114),
+    "orchid": (218, 112, 214),
+    "tan": (210, 180, 140),
 }
 
 canvas = np.zeros((CANVAS_HEIGHT, CANVAS_WIDTH, 3), dtype=np.uint8)
 
+
 def display_canvas(canvas):
     plt.figure(figsize=(CANVAS_WIDTH / 100, CANVAS_HEIGHT / 100), dpi=100)
     plt.imshow(canvas)
-    plt.axis('off')
+    plt.axis("off")
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    plt.savefig('canvas.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig("canvas.png", bbox_inches="tight", pad_inches=0)
     return create_image(plt)
 
+
 def save_canvas():
-    with open('canvas.json', 'w') as f:
+    with open("canvas.json", "w") as f:
         json.dump(canvas.tolist(), f)
+
 
 def load_canvas():
     global canvas
     try:
-        if os.path.isfile('canvas.json'):
-            with open('canvas.json', 'r') as f:
+        if os.path.isfile("canvas.json"):
+            with open("canvas.json", "r") as f:
                 canvas = np.array(json.load(f))
                 canvas = np.asarray(canvas, dtype=np.uint8)
         else:
@@ -78,10 +79,15 @@ def load_canvas():
     except Exception as e:
         print(f"An error occurred while loading the canvas: {e}")
 
+
 load_canvas()
+
+
 @register(group=Groups.GLOBAL)
-async def show(ctx: Context, x: int = None, y: int = None, size: int = DEFAULT_ZOOM_SIZE):
-    """"
+async def show(
+    ctx: Context, x: int = None, y: int = None, size: int = DEFAULT_ZOOM_SIZE
+):
+    """ "
     Show the canvas or a zoomed-in portion of the canvas.
     Params
     ------
@@ -110,6 +116,7 @@ async def show(ctx: Context, x: int = None, y: int = None, size: int = DEFAULT_Z
     var = display_canvas(image)
     return Attachment(file=var, filename="canvas.png")
 
+
 @register(group=Groups.GLOBAL)
 @cooldown(minutes=1, logic=CacheCooldown)
 async def place(ctx: Context, x: int, y: int, color_code: str):
@@ -135,9 +142,12 @@ async def place(ctx: Context, x: int, y: int, color_code: str):
             save_canvas()
             await ctx.reply(f"Pixel placed at ({x}, {y}) with color {color_code}")
         else:
-            await ctx.reply("Invalid color code! Use the `colorcodes` command to see the available color codes.")
+            await ctx.reply(
+                "Invalid color code! Use the `colorcodes` command to see the available color codes."
+            )
     else:
         await ctx.reply("Invalid coordinates!")
+
 
 @register(group=Groups.GLOBAL)
 async def colorcodes(ctx: Context):
